@@ -38,7 +38,7 @@ class Scanner(private val code: String) {
             val tokenType = TokenType.from(it.toString())
             t += Token(tokenType, it.toString())
         }
-        t += Token(TokenType.EOF, " ")
+        t += Token(TokenType.EOF, "")
         return t
     }
 }
