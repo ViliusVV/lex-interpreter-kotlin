@@ -1,4 +1,5 @@
 import java.io.File
+import java.lang.RuntimeException
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -16,11 +17,50 @@ fun main(args: Array<String>) {
     }
 
     val fileContents = File(filename).readText()
+    val scanner = Scanner(fileContents)
+    scanner.process()
 
-    // Uncomment this block to pass the first stage
-     if (fileContents.isNotEmpty()) {
-         throw NotImplementedError("Scanner not implemented")
-     } else {
-         println("EOF  null") // Placeholder, remove this line when implementing the scanner
-     }
+    scanner.tokens.forEach {
+        println(it)
+    }
+}
+
+class Scanner(private val code: String) {
+    var tokens = listOf<Token>()
+
+    fun process() {
+        tokens = scanTokens(code)
+    }
+
+    private fun scanTokens(code: String): List<Token> {
+        var t = mutableListOf<Token>()
+        code.toCharArray().forEach {
+            val tokenType = TokenType.from(it.toString())
+            t += Token(tokenType, it.toString())
+        }
+        t += Token(TokenType.EOF, " ")
+        return t
+    }
+}
+
+data class Token(val type: TokenType, val lexeme: String, val value: String? = null) {
+    override fun toString(): String {
+        return "$type $lexeme $value"
+    }
+}
+
+enum class TokenType {
+    LEFT_PAREN,
+    RIGHT_PAREN,
+    EOF;
+
+    companion object {
+        fun from(value: String): TokenType {
+            return when (value) {
+                "(" -> LEFT_PAREN
+                ")" -> RIGHT_PAREN
+                else -> throw RuntimeException("Unknown token: $value")
+            }
+        }
+    }
 }
