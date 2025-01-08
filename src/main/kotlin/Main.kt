@@ -35,6 +35,7 @@ class Scanner(private val code: List<String>) {
         code.forEachIndexed { index, line ->
             tokens += scanTokens(line, index + 1)
         }
+        tokens += Token(TokenType.EOF, "")
     }
 
     private fun scanTokens(line: String, lineNumber: Int): List<Token> {
@@ -49,8 +50,6 @@ class Scanner(private val code: List<String>) {
                 hasErrored = true
             }
         }
-
-        t += Token(TokenType.EOF, "")
 
         return t
     }
