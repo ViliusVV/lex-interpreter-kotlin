@@ -1,0 +1,1 @@
+class UnknownTokenException(val token: String) : RuntimeException("Unknown token: $token")

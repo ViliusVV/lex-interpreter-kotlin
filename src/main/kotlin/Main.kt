@@ -16,81 +16,43 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
-    val fileContents = File(filename).readText()
+    val fileContents = File(filename).readLines()
     val scanner = Scanner(fileContents)
     scanner.process()
 
     scanner.tokens.forEach {
         println(it)
     }
+
+    exitProcess(if (scanner.hasErrored) 65 else 0)
 }
 
-class Scanner(private val code: String) {
-    var tokens = listOf<Token>()
+class Scanner(private val code: List<String>) {
+    var tokens = mutableListOf<Token>()
+    var hasErrored = false
 
     fun process() {
-        tokens = scanTokens(code)
+        code.forEachIndexed { index, line ->
+            tokens += scanTokens(line, index + 1)
+        }
     }
 
-    private fun scanTokens(code: String): List<Token> {
+    private fun scanTokens(line: String, lineNumber: Int): List<Token> {
         var t = mutableListOf<Token>()
-        code.toCharArray().forEach {
-            val tokenType = TokenType.from(it.toString())
-            t += Token(tokenType, it.toString())
+
+        line.toCharArray().forEach {
+            try {
+                val tokenType = TokenType.from(it.toString())
+                t += Token(tokenType, it.toString())
+            } catch (e: UnknownTokenException) {
+                System.err.println("[line $lineNumber] Error: Unexpected character: ${e.token}")
+                hasErrored = true
+            }
         }
+
         t += Token(TokenType.EOF, "")
+
         return t
     }
 }
 
-data class Token(val type: TokenType, val lexeme: String, val value: String? = null) {
-    override fun toString(): String {
-        return "$type $lexeme $value"
-    }
-}
-
-enum class TokenType(val lexeme: String? = null) {
-    LEFT_PAREN("("),
-    RIGHT_PAREN(")"),
-    LEFT_BRACE("{"),
-    RIGHT_BRACE("}"),
-    SEMICOLON(";"),
-    COMMA(","),
-    PLUS("+"),
-    MINUS("-"),
-    STAR("*"),
-    BANG_EQUAL("!="),
-    EQUAL_EQUAL("=="),
-    LESS_EQUAL("<="),
-    GREATER_EQUAL(">="),
-    LESS("<"),
-    GREATER(">"),
-    SLASH("/"),
-    DOT("."),
-    EOF("");
-
-    companion object {
-        fun from(value: String): TokenType {
-            return when (value) {
-                LEFT_PAREN.lexeme -> LEFT_PAREN
-                RIGHT_PAREN.lexeme -> RIGHT_PAREN
-                LEFT_BRACE.lexeme -> LEFT_BRACE
-                RIGHT_BRACE.lexeme -> RIGHT_BRACE
-                SEMICOLON.lexeme -> SEMICOLON
-                COMMA.lexeme -> COMMA
-                PLUS.lexeme -> PLUS
-                MINUS.lexeme -> MINUS
-                STAR.lexeme -> STAR
-                BANG_EQUAL.lexeme -> BANG_EQUAL
-                EQUAL_EQUAL.lexeme -> EQUAL_EQUAL
-                LESS_EQUAL.lexeme -> LESS_EQUAL
-                GREATER_EQUAL.lexeme -> GREATER_EQUAL
-                LESS.lexeme -> LESS
-                GREATER.lexeme -> GREATER
-                SLASH.lexeme -> SLASH
-                DOT.lexeme -> DOT
-                else -> throw RuntimeException("Unknown token: $value")
-            }
-        }
-    }
-}
